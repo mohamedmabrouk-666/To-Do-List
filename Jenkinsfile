@@ -14,9 +14,10 @@ pipeline {
         GIT_REPO = "https://github.com/mohamedmabrouk-666/To-Do-List"
         BRANCH = "main"
        
-       IMAGE_REPO_NAME = "to_do_list_image"
        IMAGE_TAG = "${BUILD_NUMBER}"
-     FULL_IMAGE_NAME = "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+       IMAGE_REPO_NAME = "mohamedmabrouk123/to_do_list_image"
+       FULL_IMAGE_NAME = "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+
       AWS_DEFAULT_REGION    = "us-west-1"
        
 
