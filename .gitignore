@@ -1,0 +1,9 @@
+
+/instance
+/todoVenv
+.env
+.dockerignore
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform.lock.hcl

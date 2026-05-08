@@ -1,0 +1,262 @@
+<!-- templates/index.html - Todo List UI -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo List</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 48px 16px;
+    }
+
+    /* ── Layout ── */
+    .wrap {
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .sub {
+      color: #666;
+      font-size: 0.88rem;
+      margin-bottom: 28px;
+    }
+
+    /* ── Add task card ── */
+    .card {
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── Inputs ── */
+    input[type="text"],
+    input[type="datetime-local"] {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #3a3a3a;
+      border-radius: 7px;
+      padding: 11px 14px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .2s;
+      color-scheme: dark;
+    }
+
+    input:focus { border-color: #c0392b; }
+
+    .deadline-label {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: -6px;
+    }
+
+    /* ── Add button ── */
+    button.add {
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 11px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+
+    button.add:hover  { background: #a93226; }
+    button.add:active { transform: scale(.98); }
+
+    /* ── Task list ── */
+    #list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .item {
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color .2s;
+    }
+
+    .item:hover { border-color: #555; }
+
+    /* Red left border = overdue */
+    .item.overdue { border-left: 3px solid #c0392b; }
+
+    .info { flex: 1; overflow: hidden; }
+
+    .title {
+      font-size: 0.97rem;
+      color: #e0e0e0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .due {
+      font-size: 0.77rem;
+      color: #666;
+      margin-top: 3px;
+    }
+
+    .item.overdue .due { color: #c0392b; }
+
+    /* ── Done button ── */
+    button.done {
+      background: transparent;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      color: #777;
+      padding: 6px 11px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+
+    button.done:hover {
+      background: #c0392b;
+      color: #fff;
+      border-color: #c0392b;
+    }
+
+    /* ── Empty state ── */
+    #empty {
+      text-align: center;
+      color: #444;
+      font-size: 0.9rem;
+      padding: 40px 0;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>My Tasks</h1>
+  <p class="sub">Stay on top of what matters</p>
+
+  <!-- Add task form -->
+  <div class="card">
+    <input type="text" id="title" placeholder="What needs to be done?" maxlength="200" />
+    <p class="deadline-label">Deadline (optional)</p>
+    <input type="datetime-local" id="deadline" />
+    <button class="add" onclick="addTask()">Add Task</button>
+  </div>
+
+  <!-- Task list -->
+  <ul id="list"></ul>
+  <p id="empty">No tasks yet — add one above!</p>
+
+</div>
+
+<script>
+  // ── Load tasks on page open ──
+  document.addEventListener("DOMContentLoaded", load);
+
+  // Allow Enter key to submit
+  document.getElementById("title").addEventListener("keydown", e => {
+    if (e.key === "Enter") addTask();
+  });
+
+  // Fetch all tasks and render them
+  async function load() {
+    const res   = await fetch("/api/tasks");
+    const tasks = await res.json();
+    render(tasks);
+  }
+
+  // Build the task list HTML
+  function render(tasks) {
+    const list  = document.getElementById("list");
+    const empty = document.getElementById("empty");
+    list.innerHTML = "";
+
+    if (!tasks.length) { empty.style.display = "block"; return; }
+    empty.style.display = "none";
+
+    tasks.forEach(t => {
+      const li       = document.createElement("li");
+      const overdue  = t.deadline && new Date(t.deadline) < new Date();
+      li.className   = "item" + (overdue ? " overdue" : "");
+
+      // Format deadline text
+      let dueText = "";
+      if (t.deadline) {
+        const d = new Date(t.deadline);
+        const fmt = d.toLocaleString("en-GB", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+        dueText = overdue ? `⚠️ Overdue — was due ${fmt}` : `📅 Due ${fmt}`;
+      }
+
+      li.innerHTML = `
+        <div class="info">
+          <div class="title">${esc(t.title)}</div>
+          ${ dueText ? `<div class="due">${dueText}</div>` : "" }
+        </div>
+        <button class="done" onclick="del(${t.id})">Done ✓</button>
+      `;
+      list.appendChild(li);
+    });
+  }
+
+  // Add a new task
+  async function addTask() {
+    const title    = document.getElementById("title").value.trim();
+    const deadline = document.getElementById("deadline").value;
+    if (!title) { document.getElementById("title").focus(); return; }
+
+    await fetch("/api/tasks", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ title, deadline: deadline || null })
+    });
+
+    document.getElementById("title").value    = "";
+    document.getElementById("deadline").value = "";
+    load();
+  }
+
+  // Delete (mark done) a task
+  async function del(id) {
+    await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+    load();
+  }
+
+  // Escape HTML to prevent XSS
+  function esc(s) {
+    const d = document.createElement("div");
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+  }
+</script>
+</body>
+</html>
