@@ -71,7 +71,7 @@ pipeline {
          sh '''
          cd K8s
 
-        sed -i "s|image:.*|image: ${FULL_IMAGE_NAME}|" K8s/deployment.yaml
+        sed -i "s|image:.*|image: ${FULL_IMAGE_NAME}|" deployment.yaml
 
          git config user.email "jenkins@ci.com"
          git config user.name "jenkins"
