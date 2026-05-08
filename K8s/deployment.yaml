@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: todo-list
-        image: mohamedmabrouk123/to_do_list_image:33
+        image: mohamedmabrouk123/to_do_list_image:34
         ports:
         - containerPort: 5000
 
