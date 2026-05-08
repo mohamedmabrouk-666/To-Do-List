@@ -77,7 +77,7 @@ pipeline {
          git config user.email "jenkins@ci.com"
          git config user.name "jenkins"
 
-        git add K8s/deployment.yaml
+        git add deployment.yaml
          git commit -m "update image version from Jenkins"
 
          git push https://${GIT_USER}:${GIT_PASS}@github.com/mohamedmabrouk-666/To-Do-List.git main
