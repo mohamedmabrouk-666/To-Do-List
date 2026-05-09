@@ -1,3 +1,7 @@
+# To-Do List Structure 
+![image](K8s/Structure.jpeg)
+
+
 # To-Do List App
 
 A simple Flask web application for managing tasks with deadline tracking. Built primarily to practice a full DevOps pipeline from code to deployment.
