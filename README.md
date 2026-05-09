@@ -1,5 +1,5 @@
 # To-Do List Structure 
-![image](K8s/Structure.jpeg)
+![image](Structure.jpeg)
 
 
 # To-Do List App
