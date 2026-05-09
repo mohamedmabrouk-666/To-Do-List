@@ -2,6 +2,7 @@ pipeline {
    agent {
 
     label 'ec2-agent'
+      //We can use container as agent 
     // docker {
     //     image 'mohamedmabrouk123/to-do-list-tools:latest' // we will create it
     //     args '-v /var/run/docker.sock:/var/run/docker.sock'
@@ -19,12 +20,9 @@ pipeline {
        FULL_IMAGE_NAME = "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
 
       AWS_DEFAULT_REGION    = "us-west-1"
-       
-
     }
 
-
-
+   
     stages {
         stage("Clone Github Repo") {
             steps {
@@ -40,14 +38,11 @@ pipeline {
                 }
             }
         }
-    //    stage("Tag our image"){
-    //         steps{
-    //    sh "docker tag to_do_list_image mohamedmabrouk123/to_do_list:latest"
-    //         }
-    //    }
+       
         stage("Login to DockerHub") {
             steps {
                 withCredentials([usernamePassword(
+                   //DockerhubLogin is a (token from Dockerhub && User Name) ==> To save our infromation
                     credentialsId: 'DockerhubLogin',
                     usernameVariable: 'USER',
                     passwordVariable: 'PASS'
@@ -63,15 +58,17 @@ pipeline {
 //------
        stage("Update Kubernetes Manifest (GitOps)") {
    steps {
+       //githubtoken is a (token from GitHub) ==> To save our infromation
       withCredentials([usernamePassword(
          credentialsId: 'githubtoken',
          usernameVariable: 'GIT_USER',
          passwordVariable: 'GIT_PASS'
       )]) {
 
+          // User EC2 on AWS ad Cluster and use ArgoCD to automate between cluster and GitHub
          sh '''
          cd K8s
-
+           
         sed -i "s|image:.*|image: ${FULL_IMAGE_NAME}|" deployment.yaml
 
          git config user.email "jenkins@ci.com"
@@ -85,33 +82,6 @@ pipeline {
       }
    }
 }
-// --------------------------------------------------
-//         stage("Terraform Apply") {
-//            steps {
-//                   // withCredentials([usernamePassword(
-//                   //   credentialsId: 'EC2_Login',
-//                   //   usernameVariable: 'AWS_ACCESS_KEY_ID',
-//                   //   passwordVariable: 'AWS_SECRET_ACCESS_KEY'   
-//                   //  )])
-//                withCredentials([[
-//                     $class: 'AmazonWebServicesCredentialsBinding',
-//                     credentialsId: 'AWS_Login'
-//                 ]])
-//               {
-
-//                  sh '''
-//             export AWS_DEFAULT_REGION=us-west-1
-//             echo "Terraform commands"
-//             cd terraform
-//             terraform init
-//             terraform apply -auto-approve
-//             '''
-                 
-//         }
-//     }
-// }
-       
- 
     }
 
 
